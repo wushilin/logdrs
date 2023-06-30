@@ -100,6 +100,7 @@ fn pipe_text(config:&mut Config) {
             }
             append_data(config, data.as_bytes());
         }
+        let _ = config.active_fh.flush().unwrap();
     }
 }
 
@@ -135,6 +136,7 @@ fn pipe_binary(config:&mut Config) {
                     break;
                 }
                 append_data(config, &buffer[..size]);
+                let _ = config.active_fh.flush().unwrap();
             }
         }
     }
