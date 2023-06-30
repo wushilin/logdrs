@@ -9,7 +9,7 @@ Log swallower, rotater and more
 
 # Using it
 ```sh
-$ run-my-program | logd -out app.log --size 100M -keep 20
+$ run-my-program | logd --out app.log --size 100M --keep 20
 ```
 
 Receive logs from run-my-program, write to app.log and rotate every 100 MiB (pre-write checked)
