@@ -9,15 +9,15 @@ pub mod files;
 pub mod utilities;
 #[derive(Parser, Debug, Clone)]
 pub struct CliArg {
-    #[arg(short, long)]
+    #[arg(short, long, help="output file. rotated files may append suffix of `.1` etc")]
     pub out: String,
-    #[arg(short, long, default_value_t = String::from("100M"))]
+    #[arg(short, long, default_value_t = String::from("100M"), help="max file size in `1000K` format. units can be K|M|G")]
     pub size: String,
-    #[arg(short, long, default_value_t = 20)]
+    #[arg(short, long, default_value_t = 20, help="max number of files to keep (excluding current)")]
     pub keep: u32,
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, help="if `--dated` or `-d` specified, add a timestmap to each line")]
     pub dated:bool,
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, help="if `--crlf` is specified, use windows CRLF as end of line")]
     pub crlf:bool
 }
 
@@ -100,7 +100,6 @@ fn pipe_text(config:&mut Config) {
             }
             append_data(config, data.as_bytes());
         }
-        let _ = config.active_fh.flush().unwrap();
     }
 }
 
@@ -136,7 +135,6 @@ fn pipe_binary(config:&mut Config) {
                     break;
                 }
                 append_data(config, &buffer[..size]);
-                let _ = config.active_fh.flush().unwrap();
             }
         }
     }
@@ -145,6 +143,7 @@ fn pipe_binary(config:&mut Config) {
 fn append_data(config :&mut Config, buffer:&[u8]) {
     check_rotate(config, buffer.len());
     let write_result = config.active_fh.write(buffer).expect("Write unsuccessful");
+    config.active_fh.flush().unwrap();
     config.written += write_result as u64;
 }
 
@@ -162,7 +161,6 @@ fn rotate_files(config:&mut Config) {
             files::rename_file(&current_file, &next_file).expect("Rename file failed");
         }
 	}
-    let _ = config.active_fh.flush().expect("Failed to flush file");
     
     let target = format!("{}.1", config.out.as_str());
     files::rename_file(&config.out.as_str(), &target).expect("Rename file failed");
